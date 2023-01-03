@@ -24,7 +24,7 @@ abstract class DrawShape {
             xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_OVER)
         } else {
             strokeWidth = Configs.eraserWidth
-            color = Color.WHITE
+            color = Color.TRANSPARENT
             xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
         }
     }

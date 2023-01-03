@@ -62,15 +62,10 @@ class CanvasView : View {
                 when (Configs.drawType) {
                     DrawType.CURVE -> curShape = CurveShape()
                     DrawType.WIPE -> {}
-                    DrawType.RECTANGLE -> {
-                    }
-                    DrawType.OVAL -> {
-
-                    }
+                    DrawType.RECTANGLE -> {}
+                    DrawType.OVAL -> {}
                     DrawType.LINE -> {}
-                    DrawType.MULTI_LINE -> {
-
-                    }
+                    DrawType.MULTI_LINE -> {}
                 }
                 curShape?.touchDown(mStartX, mStartY)
                 true

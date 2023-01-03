@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
         when (item.itemId) {
             R.id.size -> {
                 if (mSizeWindow == null) {
-                    showSizeSelectorWindow(binding.root)
+                    showSizeSelectorWindow(atView = binding.root)
                 }
             }
             R.id.color -> {
@@ -80,7 +80,7 @@ class MainActivity : AppCompatActivity() {
         val view: View = LayoutInflater.from(this).inflate(R.layout.main_window_size_selector, null)
         val seekBar = view.findViewById<View>(R.id.seek_bar) as SeekBar
         val size = view.findViewById<View>(R.id.size) as TextView
-        val numSize = Configs.width.toInt()
+        val numSize = if (!Configs.eraserMode) Configs.width.toInt() else Configs.eraserWidth.toInt()
         seekBar.progress = numSize
         size.text = numSize.toString()
         mSizeWindow = PopupWindow(
@@ -97,13 +97,15 @@ class MainActivity : AppCompatActivity() {
         seekBar.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                 size.text = progress.toString()
-                Configs.width = progress.toFloat()
+                if (!Configs.eraserMode) {
+                    Configs.width = progress.toFloat()
+                } else {
+                    Configs.eraserWidth = progress.toFloat()
+                }
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar) {
-
-            }
+            override fun onStopTrackingTouch(seekBar: SeekBar) {}
         })
     }
 }

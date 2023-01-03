@@ -18,7 +18,7 @@ class CurveShape : DrawShape() {
 
         // 贝赛尔曲线
         mPath.quadTo(startX.toFloat(), startY.toFloat(), mMiddleX, mMiddleY)
-        val temp = floatArrayOf(startX.toFloat(), startY.toFloat(), mMiddleX, mMiddleY)
+//        val temp = floatArrayOf(startX.toFloat(), startY.toFloat(), mMiddleX, mMiddleY)
 
         startX = currentX
         startY = currentY
