@@ -14,6 +14,18 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        externalNativeBuild {
+            cmake {
+                cmake {
+                    arguments "-DASSIMP_ANDROID_JNIIOSYSTEM=0N",
+                            "-DASSIMP_BUILD_TEST=OFF",
+                            "-DASSIMP_INJECT_DEBUG_POSTFIX=OFF"
+                }
+                cppFlags ''
+            }
+
+        }
     }
 
     buildTypes {
@@ -33,6 +45,14 @@ android {
     buildFeatures  {
         viewBinding = true
     }
+
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+            version '3.18.1'
+        }
+    }
+    ndkVersion '25.1.8937393'
 }
 
 dependencies {

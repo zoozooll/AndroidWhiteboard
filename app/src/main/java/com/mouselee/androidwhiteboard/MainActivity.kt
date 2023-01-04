@@ -2,6 +2,11 @@ package com.mouselee.androidwhiteboard
 
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.opengl.GLES20
+import android.opengl.GLES32
+import android.opengl.GLES32.*
+import android.opengl.GLSurfaceView
+import android.opengl.GLUtils
 import android.os.Bundle
 import android.view.*
 import android.widget.PopupWindow
@@ -19,16 +24,35 @@ class MainActivity : AppCompatActivity() {
     private var mSizeWindow: PopupWindow? = null
     private var mColorDialog: AlertDialog? = null
 //    private var mColorWindow: PopupWindow? = null
+    private lateinit var renderer: Renderer
 
     private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         supportActionBar!!.title = ""
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        binding.glView.apply {
+            setEGLContextClientVersion(3)
+            renderer = Renderer()
+            setRenderer(renderer)
+            renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
+        }
+        binding.canvasEditor.onCanvasDrew = { cacheBitmap ->
+            binding.glView.queueEvent {
+                val texture = intArrayOf(0)
+                glGenTextures(1, texture, 0)
+                glBindTexture(GL_TEXTURE_2D, texture[0])
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                GLUtils.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cacheBitmap, 0)
+                glBindTexture(GL_TEXTURE_2D, 0)
+                renderer.updateCanvasTexture(texture[0])
+                binding.glView.requestRender()
+            }
+//            Util.saveTempBitmap(cacheBitmap, this)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

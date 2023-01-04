@@ -1,8 +1,7 @@
 package com.mouselee.androidwhiteboard
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Paint
+import android.graphics.*
 import android.graphics.drawable.GradientDrawable.LINE
 import android.graphics.drawable.GradientDrawable.RECTANGLE
 import android.util.AttributeSet
@@ -31,18 +30,24 @@ class CanvasView : View {
 
     private var curShape: DrawShape? = null
 
+    private lateinit var cacheBitmap: Bitmap
+    private lateinit var cacheCanvas: Canvas
+
+    var onCanvasDrew: ((Bitmap) -> Unit)? = null
+
     init {
 
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-
+        cacheBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        cacheCanvas = Canvas(cacheBitmap)
     }
 
     override fun onDraw(canvas: Canvas) {
         val count = canvas.saveCount
-        redrawAll(canvas)
-        curShape?.draw(canvas)
+//        redrawAll(canvas)
+//        curShape?.draw(canvas)
         canvas.restoreToCount(count)
     }
 
@@ -78,11 +83,19 @@ class CanvasView : View {
             MotionEvent.ACTION_UP -> {
                 curShape?.touchUp(currentX, currentY)
                 editHistory.add(curShape!!)
+                drawCacheBitmap()
                 curShape = null
                 invalidate()
+//                Util.saveTempBitmap(cacheBitmap, context)
+                onCanvasDrew?.invoke(cacheBitmap)
                 true
             }
             else -> false
         }
+    }
+
+    private fun drawCacheBitmap() {
+        cacheCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
+        curShape?.draw(cacheCanvas)
     }
 }
