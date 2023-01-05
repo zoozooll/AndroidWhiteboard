@@ -29,6 +29,6 @@ public class Renderer implements GLSurfaceView.Renderer {
 
     private native void finish();
 
-    native void updateCanvasTexture(int texture);
+    native void updateCanvasTexture(int texture, boolean eraser);
 
 }

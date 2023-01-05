@@ -9,22 +9,20 @@ import android.view.MotionEvent
 import android.view.View
 
 class CanvasView : View {
-    constructor(context: Context?) : super(context) {}
-    constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs) {}
+    constructor(context: Context?) : super(context)
+    constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
     constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(
         context,
         attrs,
         defStyleAttr
-    ) {
-    }
+    )
 
     constructor(
         context: Context?,
         attrs: AttributeSet?,
         defStyleAttr: Int,
         defStyleRes: Int
-    ) : super(context, attrs, defStyleAttr, defStyleRes) {
-    }
+    ) : super(context, attrs, defStyleAttr, defStyleRes)
 
     private val editHistory = ArrayList<DrawShape>()
 
@@ -33,7 +31,7 @@ class CanvasView : View {
     private lateinit var cacheBitmap: Bitmap
     private lateinit var cacheCanvas: Canvas
 
-    var onCanvasDrew: ((Bitmap) -> Unit)? = null
+    var onCanvasDrew: ((Bitmap, Boolean) -> Unit)? = null
 
     init {
 
@@ -47,7 +45,7 @@ class CanvasView : View {
     override fun onDraw(canvas: Canvas) {
         val count = canvas.saveCount
 //        redrawAll(canvas)
-//        curShape?.draw(canvas)
+        curShape?.draw(canvas)
         canvas.restoreToCount(count)
     }
 
@@ -87,7 +85,7 @@ class CanvasView : View {
                 curShape = null
                 invalidate()
 //                Util.saveTempBitmap(cacheBitmap, context)
-                onCanvasDrew?.invoke(cacheBitmap)
+                onCanvasDrew?.invoke(cacheBitmap, Configs.eraserMode)
                 true
             }
             else -> false

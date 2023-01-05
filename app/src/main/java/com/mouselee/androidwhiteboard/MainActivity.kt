@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
             setRenderer(renderer)
             renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
         }
-        binding.canvasEditor.onCanvasDrew = { cacheBitmap ->
+        binding.canvasEditor.onCanvasDrew = { cacheBitmap, eraserMode ->
             binding.glView.queueEvent {
                 val texture = intArrayOf(0)
                 glGenTextures(1, texture, 0)
@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 GLUtils.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cacheBitmap, 0)
                 glBindTexture(GL_TEXTURE_2D, 0)
-                renderer.updateCanvasTexture(texture[0])
+                renderer.updateCanvasTexture(texture[0], eraserMode)
                 binding.glView.requestRender()
             }
 //            Util.saveTempBitmap(cacheBitmap, this)

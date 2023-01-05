@@ -4,8 +4,10 @@
 
 #include "AssetHelper.h"
 #include "logutil.h"
+#include <atomic>
 
 static GLuint paintProgram = 0;
+static GLuint eraserProgram = 0;
 static GLuint prevFbo = 0;
 static GLuint boundFboTexture = 0;
 static GLuint canvasTexture = 0;
@@ -13,6 +15,7 @@ static GLuint canvasTexture = 0;
 static int scrWidth;
 static int scrHeight;
 static unsigned int VAO = 0;
+static std::atomic_bool isEraser(false);
 
 extern "C"
 JNIEXPORT void JNICALL
@@ -41,22 +44,43 @@ Java_com_mouselee_androidwhiteboard_Renderer_init(JNIEnv *env, jobject thiz) {
     delete[] source;
 
     loadDataFromAsset("shaders/canvas_editor_paint.frag", (void**)&source, &length);
-    GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-    if (fragShader != 0)
+    GLuint paintShader = glCreateShader(GL_FRAGMENT_SHADER);
+    if (paintShader != 0)
     {
         int srcLength = (int)length;
-        glShaderSource(fragShader, 1, &source, &srcLength);
-        glCompileShader(fragShader);
+        glShaderSource(paintShader, 1, &source, &srcLength);
+        glCompileShader(paintShader);
         int compiled = 0;
-        glGetShaderiv(fragShader, GL_COMPILE_STATUS, &compiled);
+        glGetShaderiv(paintShader, GL_COMPILE_STATUS, &compiled);
         if (compiled == 0)
         {
             char logString[1024];
             int logLength;
             glGetShaderInfoLog(vertShader, 1024, &logLength, logString);
             LOGE("aaron", "error in canvas_editor_paint.frag : %s", logString);
-            glDeleteShader(fragShader);
-            fragShader = 0;
+            glDeleteShader(paintShader);
+            paintShader = 0;
+        }
+    }
+    delete[] source;
+
+    loadDataFromAsset("shaders/canvas_editor_eraser.frag", (void**)&source, &length);
+    GLuint eraserShader = glCreateShader(GL_FRAGMENT_SHADER);
+    if (eraserShader != 0)
+    {
+        int srcLength = (int)length;
+        glShaderSource(eraserShader, 1, &source, &srcLength);
+        glCompileShader(eraserShader);
+        int compiled = 0;
+        glGetShaderiv(eraserShader, GL_COMPILE_STATUS, &compiled);
+        if (compiled == 0)
+        {
+            char logString[1024];
+            int logLength;
+            glGetShaderInfoLog(vertShader, 1024, &logLength, logString);
+            LOGE("aaron", "error in canvas_editor_paint.frag : %s", logString);
+            glDeleteShader(eraserShader);
+            eraserShader = 0;
         }
     }
     delete[] source;
@@ -64,7 +88,7 @@ Java_com_mouselee_androidwhiteboard_Renderer_init(JNIEnv *env, jobject thiz) {
     paintProgram = glCreateProgram();
     if (paintProgram) {
         glAttachShader(paintProgram, vertShader);
-        glAttachShader(paintProgram, fragShader);
+        glAttachShader(paintProgram, paintShader);
         glLinkProgram(paintProgram);
         int linkStatus = 0;
         glGetProgramiv(paintProgram, GL_LINK_STATUS, &linkStatus);
@@ -75,8 +99,23 @@ Java_com_mouselee_androidwhiteboard_Renderer_init(JNIEnv *env, jobject thiz) {
         }
     }
 
+    eraserProgram = glCreateProgram();
+    if (eraserProgram) {
+        glAttachShader(eraserProgram, vertShader);
+        glAttachShader(eraserProgram, eraserShader);
+        glLinkProgram(eraserProgram);
+        int linkStatus = 0;
+        glGetProgramiv(eraserProgram, GL_LINK_STATUS, &linkStatus);
+        if (linkStatus != GL_TRUE)
+        {
+            glDeleteProgram(eraserProgram);
+            eraserProgram = 0;
+        }
+    }
+
     glDeleteShader(vertShader);
-    glDeleteShader(fragShader);
+    glDeleteShader(paintShader);
+    glDeleteShader(eraserShader);
 
     glGenFramebuffers(1, &prevFbo);
     glBindFramebuffer(GL_FRAMEBUFFER, prevFbo);
@@ -122,11 +161,11 @@ Java_com_mouselee_androidwhiteboard_Renderer_init(JNIEnv *env, jobject thiz) {
 
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     // -------------------------------------------------------------------------------------------
-    glUseProgram(paintProgram); // don't forget to activate/use the shader before setting uniforms!
+//    glUseProgram(paintProgram); // don't forget to activate/use the shader before setting uniforms!
     // either set it manually like so:
-    glUniform1i(glGetUniformLocation(paintProgram, "canvasTexture"), 0);
+//    glUniform1i(glGetUniformLocation(paintProgram, "canvasTexture"), 0);
     // or set it via the texture class
-    glUniform1i(glGetUniformLocation(paintProgram, "prevTexture"), 1);
+//    glUniform1i(glGetUniformLocation(paintProgram, "prevTexture"), 1);
 }
 extern "C"
 JNIEXPORT void JNICALL
@@ -152,7 +191,7 @@ Java_com_mouselee_androidwhiteboard_Renderer_update(JNIEnv *env, jobject thiz) {
     glViewport(0, 0, scrWidth, scrHeight);
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
     // bind textures on corresponding texture units
     glActiveTexture(GL_TEXTURE0);
@@ -161,7 +200,17 @@ Java_com_mouselee_androidwhiteboard_Renderer_update(JNIEnv *env, jobject thiz) {
     glBindTexture(GL_TEXTURE_2D, boundFboTexture);
 
     // render container
-    glUseProgram(paintProgram);
+    GLuint curProgram;
+    if (!isEraser) {
+        curProgram = paintProgram;
+    } else {
+        curProgram = eraserProgram;
+    }
+    glUseProgram(curProgram);
+    // either set it manually like so:
+    glUniform1i(glGetUniformLocation(curProgram, "canvasTexture"), 0);
+    // or set it via the texture class
+    glUniform1i(glGetUniformLocation(curProgram, "prevTexture"), 1);
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
@@ -178,6 +227,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_mouselee_androidwhiteboard_Renderer_finish(JNIEnv *env, jobject thiz) {
     glDeleteProgram(paintProgram);
+    glDeleteProgram(eraserProgram);
     glDeleteFramebuffers(1, &prevFbo);
     glDeleteTextures(1, &boundFboTexture);
     glDeleteVertexArrays(1, &VAO);
@@ -186,9 +236,10 @@ Java_com_mouselee_androidwhiteboard_Renderer_finish(JNIEnv *env, jobject thiz) {
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_mouselee_androidwhiteboard_Renderer_updateCanvasTexture(JNIEnv *env, jobject thiz,
-                                                                 jint texture) {
+    jint texture, jboolean eraserMode) {
     if (canvasTexture) {
         glDeleteTextures(1, &canvasTexture);
     }
     canvasTexture = texture;
+    isEraser = eraserMode;
 }

@@ -21,11 +21,11 @@ abstract class DrawShape {
         if (!Configs.eraserMode) {
             strokeWidth = Configs.width
             color = Configs.color
-            xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_OVER)
+//            xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_OVER)
         } else {
             strokeWidth = Configs.eraserWidth
-            color = Color.TRANSPARENT
-            xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+            color = Color.WHITE
+//            xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
         }
     }
 

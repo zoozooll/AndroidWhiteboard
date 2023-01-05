@@ -9,5 +9,5 @@ out vec4 fragColor;
 void main() {
     vec4 canvasColor = texture(canvasTexture, vec2(vTexCoor.s, 1. - vTexCoor.t));
     vec4 prevColor = texture(prevTexture, vTexCoor);
-    fragColor = canvasColor + prevColor * (1. - canvasColor.a);
+    fragColor = prevColor * (1. - canvasColor.a);
 }
