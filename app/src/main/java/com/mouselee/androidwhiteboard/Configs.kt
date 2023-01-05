@@ -11,6 +11,8 @@ object Configs {
     @ColorInt
     var color: Int = Color.YELLOW
 
+    var eraserAlpha: Int = 255
+
     var eraserWidth: Float = 16f.toPx
 
     var eraserMode: Boolean = false

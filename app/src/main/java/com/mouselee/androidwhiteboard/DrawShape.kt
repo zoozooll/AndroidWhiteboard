@@ -1,6 +1,7 @@
 package com.mouselee.androidwhiteboard
 
 import android.graphics.*
+import kotlin.math.roundToInt
 
 abstract class DrawShape {
     var startX = 0
@@ -24,7 +25,8 @@ abstract class DrawShape {
 //            xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_OVER)
         } else {
             strokeWidth = Configs.eraserWidth
-            color = Color.WHITE
+            color = Color.BLACK
+            alpha = Configs.eraserAlpha
 //            xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
         }
     }

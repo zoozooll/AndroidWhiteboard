@@ -75,9 +75,13 @@ class MainActivity : AppCompatActivity() {
                         .setPositiveButton(getString(android.R.string.ok),
                             ColorEnvelopeListener { envelope, fromUser ->
                                 if (fromUser) {
-                                    Configs.color = envelope.color
-                                    mColorDialog!!.dismiss()
-                                    mColorDialog = null
+                                    if (!Configs.eraserMode) {
+                                        Configs.color = envelope.color
+                                        mColorDialog!!.dismiss()
+                                        mColorDialog = null
+                                    } else  {
+                                        Configs.eraserAlpha = Color.alpha(envelope.color)
+                                    }
                                 }
                             })
                         .setNegativeButton(getString(android.R.string.cancel)) {
